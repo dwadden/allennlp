@@ -96,10 +96,11 @@ class Pruner(torch.nn.Module):
         # Shape: (batch_size, max_num_items_to_keep)
         top_indices = top_indices.squeeze(-1)
 
-        # Fill all masked indices with largest "top" index for that sentence, so that all masked
+        # Fill all masked indices with largest un-masked "top" index for that sentence, so that all masked
         # indices will be sorted to the end.
         # Shape: (batch_size, 1)
-        fill_value, _ = top_indices.max(dim=1)
+        fill_value, _ = (top_indices * top_indices_mask.long()).max(dim=1)
+        # fill_value, _ = top_indices.max(dim=1)
         fill_value = fill_value.unsqueeze(-1)
         # Shape: (batch_size, max_num_items_to_keep)
         top_indices = torch.where(top_indices_mask, top_indices, fill_value)

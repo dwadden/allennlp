@@ -54,6 +54,7 @@ import argparse
 import logging
 import json
 
+from allennlp.commands.copy_weights import copy_weights
 
 from allennlp.commands.subcommand import Subcommand
 from allennlp.common.util import prepare_environment
@@ -83,6 +84,9 @@ class Evaluate(Subcommand):
         subparser.add_argument('--weights-file',
                                type=str,
                                help='a path that overrides which weights file to use')
+        subparser.add_argument('--tensorflow_weights_dir',
+                               type=str,
+                               help='If given, copy in tensorflow weights from this directory.')
 
         cuda_device = subparser.add_mutually_exclusive_group(required=False)
         cuda_device.add_argument('--cuda-device',
@@ -131,6 +135,8 @@ def evaluate_from_args(args: argparse.Namespace) -> Dict[str, Any]:
     prepare_environment(config)
     model = archive.model
     model.eval()
+    if args.tensorflow_weights_dir:
+        copy_weights(model, args.tensorflow_weights_dir)
 
     # Load the evaluation data
 

@@ -105,7 +105,8 @@ class Embedding(TokenEmbedder):
         if weight is None:
             weight = torch.FloatTensor(num_embeddings, embedding_dim)
             self.weight = torch.nn.Parameter(weight, requires_grad=trainable)
-            torch.nn.init.xavier_uniform_(self.weight)
+            # torch.nn.init.xavier_uniform_(self.weight)
+            torch.nn.init.constant_(self.weight, 0)
         else:
             if weight.size() != (num_embeddings, embedding_dim):
                 raise ConfigurationError("A weight matrix was passed with contradictory embedding shapes.")
@@ -412,14 +413,16 @@ def _read_embeddings_from_text_file(file_uri: str,
                                  "misspecified your embedding_dim parameter, or didn't "
                                  "pre-populate your Vocabulary")
 
+
     all_embeddings = numpy.asarray(list(embeddings.values()))
     embeddings_mean = float(numpy.mean(all_embeddings))
     embeddings_std = float(numpy.std(all_embeddings))
     # Now we initialize the weight matrix for an embedding layer, starting with random vectors,
     # then filling in the word vectors we just read.
     logger.info("Initializing pre-trained embedding layer")
-    embedding_matrix = torch.FloatTensor(vocab_size, embedding_dim).normal_(embeddings_mean,
-                                                                            embeddings_std)
+    # embedding_matrix = torch.FloatTensor(vocab_size, embedding_dim).normal_(embeddings_mean,
+    #                                                                         embeddings_std)
+    embedding_matrix = torch.zeros(vocab_size, embedding_dim)
     num_tokens_found = 0
     index_to_token = vocab.get_index_to_token_vocabulary(namespace)
     for i in range(vocab_size):
