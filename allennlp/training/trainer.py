@@ -1,4 +1,3 @@
-
 import logging
 import math
 import os
@@ -249,7 +248,7 @@ class Trainer(TrainerBase):
     def rescale_gradients(self) -> Optional[float]:
         return training_util.rescale_gradients(self.model, self._grad_norm)
 
-    def batch_loss(self, batch_group: List[TensorDict], for_training: bool) -> torch.Tensor:
+    def batch_loss(self, batch_group: List[TensorDict], for_training: bool, epoch: int = None) -> torch.Tensor:
         """
         Does a forward pass on the given batches and returns the ``loss`` value in the result.
         If ``for_training`` is `True` also applies regularization penalty.
@@ -259,6 +258,7 @@ class Trainer(TrainerBase):
         else:
             assert len(batch_group) == 1
             batch = batch_group[0]
+            batch["epoch"] = epoch
             batch = nn_util.move_to_device(batch, self._cuda_devices[0])
             output_dict = self.model(**batch)
 
@@ -319,7 +319,7 @@ class Trainer(TrainerBase):
 
             self.optimizer.zero_grad()
 
-            loss = self.batch_loss(batch_group, for_training=True)
+            loss = self.batch_loss(batch_group, for_training=True, epoch=epoch)
 
             if torch.isnan(loss):
                 raise ValueError("nan loss encountered")
